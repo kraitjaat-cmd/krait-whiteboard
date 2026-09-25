@@ -1,7 +1,15 @@
 /**
  * Robust background audio controller for KRAIT Whiteboard.
  * Handles browser autoplay policies, preloading, and user gesture unlocking.
+ * Supports GitHub Pages subpath deployment.
  */
+
+export const getAudioUrl = (filename: string = 'desposition.mp3'): string => {
+  const base = import.meta.env.BASE_URL || './';
+  const cleanBase = base.endsWith('/') ? base : `${base}/`;
+  const cleanFile = filename.startsWith('/') ? filename.slice(1) : filename;
+  return `${cleanBase}${cleanFile}`;
+};
 
 class BackgroundAudioManager {
   private audio: HTMLAudioElement | null = null;
@@ -18,7 +26,7 @@ class BackgroundAudioManager {
     if (this.audio) return;
     try {
       this.audio = new Audio();
-      this.audio.src = '/desposition.mp3';
+      this.audio.src = getAudioUrl('desposition.mp3');
       this.audio.preload = 'auto';
       this.audio.loop = true;
       this.audio.volume = 0.85;
@@ -26,7 +34,7 @@ class BackgroundAudioManager {
       // Also set fallback source listener
       this.audio.onerror = () => {
         if (this.audio && this.audio.src.includes('desposition.mp3')) {
-          this.audio.src = '/music.mp3';
+          this.audio.src = getAudioUrl('music.mp3');
           this.audio.load();
         }
       };
@@ -57,8 +65,10 @@ class BackgroundAudioManager {
     this.initAudio();
     if (!this.audio) return false;
 
-    if (url && this.audio.src !== url && !this.audio.src.endsWith(url)) {
-      this.audio.src = url;
+    const targetUrl = url ? getAudioUrl(url) : getAudioUrl('desposition.mp3');
+
+    if (this.audio.src !== targetUrl && !this.audio.src.endsWith(targetUrl)) {
+      this.audio.src = targetUrl;
     }
 
     try {
